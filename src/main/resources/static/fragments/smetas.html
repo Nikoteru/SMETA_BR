@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/layout.css">
+    <title>Смета</title>
+    <style>
+        :root {
+            --blue: #9fc5e8;
+            --blue-dark: #7ea8cf;
+            --line: #6f6f6f;
+            --stage-bg: #efefef;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            color: #222;
+        }
+
+        .wrap {
+            width: 100%;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            font-size: 22px;
+        }
+
+        .table-box {
+            background: #fff;
+            border: 1px solid var(--line);
+            overflow-x: auto;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            min-width: 1200px;
+        }
+
+        col.stage-col { width: 240px; }
+        col.num-col { width: 60px; }
+        col.name-col { width: auto; }
+        col.unit-col { width: 90px; }
+        col.price-col { width: 120px; }
+        col.qty-col { width: 110px; }
+        col.sum-col { width: 140px; }
+
+        th, td {
+            border: 1px solid var(--line);
+            padding: 6px 8px;
+            font-size: 13px;
+            vertical-align: middle;
+            background: var(--white);
+        }
+
+        thead th {
+            background: var(--blue);
+            text-align: center;
+            font-weight: 700;
+        }
+
+        thead .top-group {
+            background: var(--blue);
+            font-size: 14px;
+        }
+
+        .stage-cell {
+            background: var(--stage-bg);
+            font-weight: 700;
+            text-align: center;
+            white-space: pre-line;
+            line-height: 1.35;
+        }
+
+        .num {
+            text-align: center;
+        }
+
+        .unit,
+        .price,
+        .qty,
+        .sum {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .name {
+            text-align: left;
+        }
+
+        .subtotal td,
+        .stage-total td,
+        .global-total td,
+        .final-total td {
+            background: var(--blue);
+            font-weight: 700;
+        }
+
+        .subtotal-label,
+        .stage-total-label,
+        .global-total-label,
+        .final-total-label {
+            text-align: left;
+            padding-left: 12px;
+        }
+
+        .sum {
+            font-weight: 700;
+        }
+
+        .muted {
+            font-size: 12px;
+            color: #555;
+            margin: 10px 0 0;
+        }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+
+    <div class="main-area">
+        <div id="header-placeholder"></div>
+
+        <main class="page-content">
+            <div class="wrap">
+                <div class="table-box">
+                    <table>
+                        <colgroup>
+                            <col class="stage-col" />
+                            <col class="num-col" />
+                            <col class="name-col" />
+                            <col class="unit-col" />
+                            <col class="price-col" />
+                            <col class="qty-col" />
+                            <col class="sum-col" />
+                        </colgroup>
+
+                        <thead>
+                        <tr>
+                            <th class="top-group">Этапы строительства</th>
+                            <th class="top-group" colspan="6">Работы/материалы</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>№</th>
+                            <th>Наименование</th>
+                            <th>Ед. изм.</th>
+                            <th>Цена</th>
+                            <th>Кол-во</th>
+                            <th>Сумма</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="estimate-body"></tbody>
+                    </table>
+                </div>
+
+                <p class="muted">
+                    В этом примере таблица строится из JSON. Для следующих разделов просто добавляй новые объекты в массив <code>stages</code>.
+                </p>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="/js/layout.js"></script>
+
+<script>
+    const estimateData = {
+        stages: [
+            {
+                title: "Фундамент\n(Забивные ЖБ сваи 150×150×3000мм)",
+                materials: [
+                    {
+                        name: "Забивные ЖБ сваи 150x150x3000мм (с учетом доставки)",
+                        unit: "шт.",
+                        price: 2400,
+                        qty: 45,
+                        sum: 108000
+                    },
+                    {
+                        name: "Брус 200x150мм (обвязка) 18шт.",
+                        unit: "м3",
+                        price: 18000,
+                        qty: 2.88,
+                        sum: 51840
+                    },
+                    {
+                        name: "Сенеж антисептик трудновымываемый для древесины в тяжелых условиях эксплуатации",
+                        unit: "10л.",
+                        price: 2100,
+                        qty: 2.88,
+                        sum: 6048
+                    }
+                ],
+                works: [
+                    {
+                        name: "Монтаж Забивных ЖБ сваи 200x200x4000мм",
+                        unit: "шт.",
+                        price: 2400,
+                        qty: 45,
+                        sum: 108000
+                    },
+                    {
+                        name: "Монтаж обвязки с учетом антисептирования",
+                        unit: "м.пог.",
+                        price: 400,
+                        qty: 96,
+                        sum: 38400
+                    }
+                ]
+            },
+
+            {
+                title: "Комплект стен,\nЛаги, Балки",
+                materials: [
+                    {
+                        name: "Комплект стен из Клееного бруса 200x180(170мм) 436шт.",
+                        unit: "м3",
+                        price: 50000,
+                        qty: 94.18,
+                        sum: 4708800
+                    },
+                    {
+                        name: "Политерм Стандарт-120 (Толщина 6–8 мм)",
+                        unit: "м.пог.",
+                        price: 23,
+                        qty: 2616,
+                        sum: 60168
+                    },
+                    {
+                        name: "Нагеля березовые d25 длина 1200мм",
+                        unit: "шт.",
+                        price: 40,
+                        qty: 942,
+                        sum: 37670
+                    },
+                    {
+                        name: "Узел пружинный модернизированный Узел Сила 10x280 мм, 50 шт.",
+                        unit: "шт.",
+                        price: 100,
+                        qty: 188,
+                        sum: 18835
+                    },
+                    {
+                        name: "Расх. Материалы: скобы на стейплер, скобы строительные, ГСМ, компенсаторы.",
+                        unit: "шт.",
+                        price: 28253,
+                        qty: 1,
+                        sum: 28253
+                    },
+                    {
+                        name: "Брус 200x50x6000мм первый сорт (Лаги Балки) 76шт",
+                        unit: "м3",
+                        price: 18000,
+                        qty: 4.56,
+                        sum: 82080
+                    },
+                    {
+                        name: "Брус 200x100x6000мм первый сорт (Лаги Балки) 6шт",
+                        unit: "м3",
+                        price: 18000,
+                        qty: 0.72,
+                        sum: 12960
+                    },
+                    {
+                        name: "Опора бруса открытая (опора раскрытая) 50x180, стальная оцинкованная",
+                        unit: "шт.",
+                        price: 160,
+                        qty: 198,
+                        sum: 31680
+                    },
+                    {
+                        name: "Сенеж антисептик трудновымываемый для древесины в тяжелых условиях эксплуатации",
+                        unit: "10л.",
+                        price: 2100,
+                        qty: 4,
+                        sum: 8400
+                    }
+                ],
+                works: [
+                    {
+                        name: "Монтаж комплекта стен из Клееного бруса 200x180(170мм) 436шт.",
+                        unit: "м3",
+                        price: 7000,
+                        qty: 94,
+                        sum: 659232
+                    },
+                    {
+                        name: "Установка Балок и Лаг",
+                        unit: "м2",
+                        price: 600,
+                        qty: 221,
+                        sum: 132600
+                    }
+                ]
+            }
+        ],
+
+        delivery: {
+            title: "Доставка разгрузка",
+            items: [
+                {
+                    name: "Доставка в Московскую область комплекта стен",
+                    unit: "рейс",
+                    price: 60000,
+                    qty: 2.7,
+                    sum: 161445
+                },
+                {
+                    name: "Разгрузка и доставка комплекта стен до участка манипулятором",
+                    unit: "шт.",
+                    price: 25000,
+                    qty: 2.7,
+                    sum: 67269
+                },
+                {
+                    name: "Доставка пиломатериала",
+                    unit: "шт.",
+                    price: 30000,
+                    qty: 1.86,
+                    sum: 55800
+                },
+                {
+                    name: "Другие доставки",
+                    unit: "шт.",
+                    price: 10000,
+                    qty: 4.42,
+                    sum: 44200
+                }
+            ]
+        }
+    };
+
+    const body = document.getElementById("estimate-body");
+
+    const moneyFormatter = new Intl.NumberFormat("ru-RU", {
+        maximumFractionDigits: 0
+    });
+
+    const qtyFormatter = new Intl.NumberFormat("ru-RU", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3
+    });
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    function formatMoney(value) {
+        return `${moneyFormatter.format(value)} ₽`;
+    }
+
+    function formatQty(value) {
+        return qtyFormatter.format(value);
+    }
+
+    function getItemSum(item) {
+        if (typeof item.sum === "number") return item.sum;
+        return Math.round(item.price * item.qty);
+    }
+
+    function getGroupTotal(items = []) {
+        return items.reduce((acc, item) => acc + getItemSum(item), 0);
+    }
+
+    function getStageTotal(stage) {
+        return getGroupTotal(stage.materials) + getGroupTotal(stage.works);
+    }
+
+    function getStageRowCount(stage) {
+        let count = 0;
+
+        if (stage.materials?.length) count += stage.materials.length + 1;
+        if (stage.works?.length) count += stage.works.length + 1;
+
+        count += 1;
+        return count;
+    }
+
+    function getDeliveryRowCount(delivery) {
+        return delivery.items.length + 1;
+    }
+
+    function renderItemCells(index, item) {
+        return `
+        <td class="num">${index}</td>
+        <td class="name">${escapeHtml(item.name)}</td>
+        <td class="unit">${escapeHtml(item.unit)}</td>
+        <td class="price">${formatMoney(item.price)}</td>
+        <td class="qty">${formatQty(item.qty)}</td>
+        <td class="sum">${formatMoney(getItemSum(item))}</td>
+      `;
+    }
+
+    function renderStage(stage) {
+        const materialsTotal = getGroupTotal(stage.materials);
+        const worksTotal = getGroupTotal(stage.works);
+        const stageTotal = getStageTotal(stage);
+        const rowspan = getStageRowCount(stage);
+
+        let html = "";
+        let stageInserted = false;
+
+        const stageCell = `
+        <td class="stage-cell" rowspan="${rowspan}">
+          ${escapeHtml(stage.title).replace(/\n/g, "<br>")}
+        </td>
+      `;
+
+        if (stage.materials?.length) {
+            stage.materials.forEach((item, index) => {
+                html += `
+            <tr>
+              ${!stageInserted ? stageCell : ""}
+              ${renderItemCells(index + 1, item)}
+            </tr>
+          `;
+                stageInserted = true;
+            });
+
+            html += `
+          <tr class="subtotal">
+            <td colspan="5" class="subtotal-label">Итого (материалы):</td>
+            <td class="sum">${formatMoney(materialsTotal)}</td>
+          </tr>
+        `;
+        }
+
+        if (stage.works?.length) {
+            stage.works.forEach((item, index) => {
+                html += `
+            <tr>
+              ${!stageInserted ? stageCell : ""}
+              ${renderItemCells(index + 1, item)}
+            </tr>
+          `;
+                stageInserted = true;
+            });
+
+            html += `
+          <tr class="subtotal">
+            <td colspan="5" class="subtotal-label">Итого (работы):</td>
+            <td class="sum">${formatMoney(worksTotal)}</td>
+          </tr>
+        `;
+        }
+
+        html += `
+        <tr class="stage-total">
+          <td colspan="5" class="stage-total-label">Итого:</td>
+          <td class="sum">${formatMoney(stageTotal)}</td>
+        </tr>
+      `;
+
+        return html;
+    }
+
+    function renderGlobalSummary(stages) {
+        const materialsTotal = stages.reduce(
+            (acc, stage) => acc + getGroupTotal(stage.materials),
+            0
+        );
+
+        const worksTotal = stages.reduce(
+            (acc, stage) => acc + getGroupTotal(stage.works),
+            0
+        );
+
+        const grandTotal = materialsTotal + worksTotal;
+
+        return `
+        <tr class="global-total">
+          <td colspan="6" class="global-total-label">Итого (материалы):</td>
+          <td class="sum">${formatMoney(materialsTotal)}</td>
+        </tr>
+        <tr class="global-total">
+          <td colspan="6" class="global-total-label">Итого (работы):</td>
+          <td class="sum">${formatMoney(worksTotal)}</td>
+        </tr>
+        <tr class="global-total">
+          <td colspan="6" class="global-total-label">Итого:</td>
+          <td class="sum">${formatMoney(grandTotal)}</td>
+        </tr>
+      `;
+    }
+
+    function renderDelivery(delivery) {
+        const total = getGroupTotal(delivery.items);
+        const rowspan = getDeliveryRowCount(delivery);
+
+        let html = "";
+        let stageInserted = false;
+
+        const stageCell = `
+        <td class="stage-cell" rowspan="${rowspan}">
+          ${escapeHtml(delivery.title)}
+        </td>
+      `;
+
+        delivery.items.forEach((item, index) => {
+            html += `
+          <tr>
+            ${!stageInserted ? stageCell : ""}
+            ${renderItemCells(index + 1, item)}
+          </tr>
+        `;
+            stageInserted = true;
+        });
+
+        html += `
+        <tr class="stage-total">
+          <td colspan="5" class="stage-total-label">Итого:</td>
+          <td class="sum">${formatMoney(total)}</td>
+        </tr>
+      `;
+
+        return html;
+    }
+
+    function renderFinalTotal(stages, delivery) {
+        const stagesTotal = stages.reduce((acc, stage) => acc + getStageTotal(stage), 0);
+        const deliveryTotal = getGroupTotal(delivery.items);
+        const grandTotal = stagesTotal + deliveryTotal;
+
+        return `
+        <tr class="final-total">
+          <td colspan="6" class="final-total-label">Итого с учётом доставки и разгрузки:</td>
+          <td class="sum">${formatMoney(grandTotal)}</td>
+        </tr>
+      `;
+    }
+
+    function renderTable(data) {
+        let html = "";
+
+        data.stages.forEach(stage => {
+            html += renderStage(stage);
+        });
+
+        html += renderGlobalSummary(data.stages);
+        html += renderDelivery(data.delivery);
+        html += renderFinalTotal(data.stages, data.delivery);
+
+        body.innerHTML = html;
+    }
+
+    renderTable(estimateData);
+</script>
+</body>
+</html>
