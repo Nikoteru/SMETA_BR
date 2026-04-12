@@ -20,6 +20,6 @@ public class ObjectController {
             Model model
     ) {
         model.addAttribute("contracts", contractRepository.selectContract(pId, pLmt));
-        return "objects";
+        return "objects.html";
     }
 }

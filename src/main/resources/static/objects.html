@@ -131,19 +131,151 @@
             background: #fff;
             border: 1px solid var(--line);
         }
+
+        .top-bar {
+            padding: 16px 20px 0;
+        }
+
+        .top-bar label {
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .top-bar select {
+            min-width: 220px;
+            padding: 8px 10px;
+            font-size: 14px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+        }
     </style>
 </head>
 <body>
 <div class="app-layout">
     <div id="sidebar-placeholder"></div>
 
-    <div class="main-area">
-        <div id="header-placeholder"></div>
 
-        <div th:replace="~{fragments/contracts :: contractsTable}"></div>
+
+    <div class="main-area">
+        <div class="top-bar">
+            <label for="docType">Тип:</label>
+            <select id="docType" name="docType">
+                <option value="">Выберите тип</option>
+                <option value="1">Договор</option>
+                <option value="2">Заказчик</option>
+            </select>
+        </div>
+        <div id="contracts-modal" style="display: none;"></div>
     </div>
 </div>
 
 <script src="/js/layout.js"></script>
+<script>
+    async function loadFragment(url, selector) {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Не удалось загрузить фрагмент: HTTP ${response.status}`);
+        }
+
+        const html = await response.text();
+        document.querySelector(selector).innerHTML = html;
+    }
+
+    async function loadContracts() {
+        const pId = document.getElementById('contracts-pId')?.value;
+        const pLmt = document.getElementById('contracts-pLmt')?.value || 10;
+
+        let url = `/api/contracts?pLmt=${encodeURIComponent(pLmt)}`;
+        if (pId) {
+            url += `&pId=${encodeURIComponent(pId)}`;
+        }
+
+        const message = document.getElementById('contracts-message');
+        const table = document.getElementById('contractsTable');
+        const tbody = table.querySelector('tbody');
+
+        message.textContent = 'Загрузка...';
+        tbody.innerHTML = '';
+        table.style.display = 'none';
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const contracts = await response.json();
+
+            if (!contracts || contracts.length === 0) {
+                message.textContent = 'Контракты не найдены';
+                return;
+            }
+
+            contracts.forEach(contract => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${contract.id ?? ''}</td>
+                    <td>${contract.contractNum ?? ''}</td>
+                    <td>${contract.contractDate ?? ''}</td>
+                    <td>${contract.contractorId ?? ''}</td>
+                    <td>${contract.createDttm ?? ''}</td>
+                    <td>${contract.updateDttm ?? ''}</td>
+                    <td>${contract.createUserId ?? ''}</td>
+                    <td>${contract.updateUserId ?? ''}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            message.textContent = '';
+            table.style.display = 'table';
+        } catch (error) {
+            message.textContent = 'Ошибка загрузки данных: ' + error.message;
+        }
+    }
+
+    async function showContractsFragment() {
+        const modal = document.getElementById('contracts-modal');
+
+        if (!modal.dataset.loaded) {
+            await loadFragment('/fragments/contracts.html', '#contracts-modal');
+            modal.dataset.loaded = 'true';
+
+            document
+                .getElementById('load-contracts-btn')
+                .addEventListener('click', loadContracts);
+        }
+
+        modal.style.display = 'block';
+        await loadContracts();
+    }
+
+    function hideContractsFragment() {
+        const modal = document.getElementById('contracts-modal');
+        modal.style.display = 'none';
+        modal.innerHTML = '';
+        delete modal.dataset.loaded;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const docTypeSelect = document.getElementById('docType');
+
+        docTypeSelect.addEventListener('change', async function () {
+            const docType = this.value;
+
+            if (docType === '1') {
+                await showContractsFragment();
+            } else {
+                hideContractsFragment();
+            }
+        });
+    });
+</script>
 </body>
 </html>
