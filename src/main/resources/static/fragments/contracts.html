@@ -1,0 +1,38 @@
+<div th:fragment="contractsTable">
+    <div class="wrap">
+        <h1>Список контрактов</h1>
+
+        <div th:if="${contracts == null || #lists.isEmpty(contracts)}" class="empty">
+            Контракты не найдены
+        </div>
+
+        <div th:if="${contracts != null && !#lists.isEmpty(contracts)}" class="table-box">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Номер договора</th>
+                    <th>Дата договора</th>
+                    <th>ID контрагента</th>
+                    <th>Создан</th>
+                    <th>Обновлён</th>
+                    <th>Создал пользователь</th>
+                    <th>Обновил пользователь</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="contract : ${contracts}">
+                    <td th:text="${contract.id}">1</td>
+                    <td th:text="${contract.contractNum}">CN-001</td>
+                    <td th:text="${contract.contractDate}">2026-04-11</td>
+                    <td th:text="${contract.contractorId}">100</td>
+                    <td th:text="${contract.createDttm}">2026-04-11T10:00:00</td>
+                    <td th:text="${contract.updateDttm}">2026-04-11T12:00:00</td>
+                    <td th:text="${contract.createUserId}">1</td>
+                    <td th:text="${contract.updateUserId}">2</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

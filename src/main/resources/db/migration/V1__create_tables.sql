@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS crm.stage
     CONSTRAINT stage_stage_order_unique UNIQUE (stage_order,stage_sub_order),
     CONSTRAINT stage_stage_order_positive CHECK (stage_order > 0),
     CONSTRAINT stage_stage_sub_order_positive CHECK (stage_sub_order > 0)
-    )
+)
     TABLESPACE pg_default;
 
 DROP TABLE IF EXISTS crm.smeta;
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS crm.smeta
     update_user_id bigint DEFAULT 1,
     contractor_id bigint,
     CONSTRAINT smeta_pkey PRIMARY KEY (id)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS crm.user
     update_dttm timestamp without time zone DEFAULT now(),
     CONSTRAINT user_pkey PRIMARY KEY (id),
     CONSTRAINT user_login_unique UNIQUE (user_login)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS crm.stage_type
     update_user_id bigint DEFAULT 1,
     CONSTRAINT stage_type_pkey PRIMARY KEY (id),
     CONSTRAINT stage_type_name_unique UNIQUE (stage_type_name)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS crm.contractor
     contractor_type_id bigint,
     CONSTRAINT contractor_pkey PRIMARY KEY (id),
     CONSTRAINT contractor_name_unique UNIQUE (contractor_name)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS crm.contractor_type
     update_user_id bigint DEFAULT 1,
     CONSTRAINT contractor_type_pkey PRIMARY KEY (id),
     CONSTRAINT contractor_type_name_unique UNIQUE (contractor_type_name)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS crm.position_type
     update_user_id bigint DEFAULT 1,
     CONSTRAINT position_type_pkey PRIMARY KEY (id),
     CONSTRAINT position_type_name_unique UNIQUE (position_type_name)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS crm.link_smeta_stage
     CONSTRAINT smeta_stage_unique UNIQUE (smeta_id,stage_id),
     CONSTRAINT smeta_stage_order_unique UNIQUE (smeta_id,stage_order)
 
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS crm.link_stage_position
     CONSTRAINT link_stage_position_pkey PRIMARY KEY (id),
     CONSTRAINT stage_position_unique UNIQUE (stage_id,position_id)
 
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS crm.position
     update_user_id bigint DEFAULT 1,
     CONSTRAINT position_pkey PRIMARY KEY (id),
     CONSTRAINT position_name_unique UNIQUE (position_name)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS crm.unit_type
     update_user_id bigint DEFAULT 1,
     CONSTRAINT unit_type_pkey PRIMARY KEY (id),
     CONSTRAINT unit_type_name_unique UNIQUE (unit_type_name)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS crm.contract
     update_user_id bigint DEFAULT 1,
     CONSTRAINT contract_pkey PRIMARY KEY (id),
     CONSTRAINT contract_num_unique UNIQUE (contract_num)
-    )
+)
 
     TABLESPACE pg_default;
 
@@ -263,14 +263,14 @@ INSERT INTO crm.stage_type (stage_type_name)
 VALUES
     ('Забивные ЖБ сваи 150х150х3000мм'),
     ('два этажа')
-    ON CONFLICT (stage_type_name) DO NOTHING;
+ON CONFLICT (stage_type_name) DO NOTHING;
 
 INSERT INTO crm.contractor_type (contractor_type_name)
 VALUES
     ('ФЛ'),
     ('ИП'),
     ('ЮЛ')
-    ON CONFLICT (contractor_type_name) DO NOTHING;
+ON CONFLICT (contractor_type_name) DO NOTHING;
 
 -- stage
 INSERT INTO crm.stage (stage_name, stage_order)
@@ -281,7 +281,7 @@ VALUES
     ('Окна двери', 4),
     ('Отделка', 5),
     ('Доставка разгрузка', 6)
-    ON CONFLICT DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- unit_type
 INSERT INTO crm.unit_type (unit_type_name)
@@ -293,14 +293,14 @@ VALUES
     ('м2'),
     ('комплект'),
     ('рейс')
-    ON CONFLICT (unit_type_name) DO NOTHING;
+ON CONFLICT (unit_type_name) DO NOTHING;
 
 -- position_type
 INSERT INTO crm.position_type (position_type_name)
 VALUES
     ('Материалы'),
     ('Работы')
-    ON CONFLICT (position_type_name) DO NOTHING;
+ON CONFLICT (position_type_name) DO NOTHING;
 
 -- position
 
@@ -368,7 +368,7 @@ VALUES
     ('Доставка в Московскую область комплекта стен', (SELECT id FROM crm.position_type WHERE position_type_name = 'Работы'), (SELECT id FROM crm.unit_type WHERE unit_type_name = 'рейс'), (SELECT id FROM crm.stage WHERE stage_name = 'Доставка разгрузка')),
     ('Разгрузка и доставка комплекта стен до участка манипулятором', (SELECT id FROM crm.position_type WHERE position_type_name = 'Работы'), (SELECT id FROM crm.unit_type WHERE unit_type_name = 'шт.'), (SELECT id FROM crm.stage WHERE stage_name = 'Доставка разгрузка')),
     ('Доставка Пиломатериала', (SELECT id FROM crm.position_type WHERE position_type_name = 'Работы'), (SELECT id FROM crm.unit_type WHERE unit_type_name = 'шт.'), (SELECT id FROM crm.stage WHERE stage_name = 'Доставка разгрузка'))
-    ON CONFLICT (position_name) DO NOTHING;
+ON CONFLICT (position_name) DO NOTHING;
 
 
 
@@ -378,8 +378,8 @@ create or replace function crm.check_user_credentials(
     p_login varchar,
     p_password varchar
 )
-returns boolean
-language sql
+    returns boolean
+    language sql
 as
 $$
 select exists (
@@ -390,9 +390,60 @@ select exists (
 );
 $$;
 
+INSERT INTO crm."user"(
+    user_name, user_login, user_password)
+VALUES ('test','test','test');
 
-select 1
-from crm."user"
-where user_login = 'test'
-  and user_password = 'test'
-select crm.check_user_credentials('test', 'test');
+create or replace function crm.fn_select_contract(
+    p_id  bigint default null,
+    p_lmt integer default null
+)
+    returns table (
+                      id             bigint,
+                      contract_num   varchar,
+                      contract_date  date,
+                      contractor_id  bigint,
+                      create_dttm    timestamp,
+                      update_dttm    timestamp,
+                      create_user_id bigint,
+                      update_user_id bigint
+                  )
+    language plpgsql
+as
+$$
+declare
+    v_sql text;
+begin
+    v_sql := '
+        select
+            c.id,
+            c.contract_num,
+            c.contract_date,
+            c.contractor_id,
+            c.create_dttm,
+            c.update_dttm,
+            c.create_user_id,
+            c.update_user_id
+        from crm.contract c
+        where 1 = 1
+    ';
+
+    if p_id is not null then
+        v_sql := v_sql || ' and c.id = $1';
+    end if;
+
+    if p_lmt is not null and p_lmt > 0 then
+        v_sql := v_sql || format(' limit %s', p_lmt);
+    end if;
+
+    if p_id is not null then
+        return query execute v_sql using p_id;
+    else
+        return query execute v_sql;
+    end if;
+end;
+$$;
+
+INSERT INTO crm.contract(
+    contract_num, contract_date, contractor_id)
+VALUES ('1sdafa1', '5999-12-31', 1);

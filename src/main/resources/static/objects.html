@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -27,6 +27,7 @@
 
         .wrap {
             width: 100%;
+            padding: 20px;
         }
 
         h1 {
@@ -124,6 +125,12 @@
             color: #555;
             margin: 10px 0 0;
         }
+
+        .empty {
+            padding: 20px;
+            background: #fff;
+            border: 1px solid var(--line);
+        }
     </style>
 </head>
 <body>
@@ -133,12 +140,10 @@
     <div class="main-area">
         <div id="header-placeholder"></div>
 
-
+        <div th:replace="~{fragments/contracts :: contractsTable}"></div>
     </div>
 </div>
 
 <script src="/js/layout.js"></script>
-
-
 </body>
 </html>
