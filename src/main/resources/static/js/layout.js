@@ -61,3 +61,4 @@ function setActiveMenuItem() {
 }
 
 document.addEventListener('DOMContentLoaded', initLayout);
+

@@ -423,7 +423,8 @@ VALUES ('test','test','test');
 
 create or replace function crm.fn_select_contract(
     p_id  bigint default null,
-    p_lmt integer default null
+    p_lmt integer default null,
+    p_fst integer default null
 )
     returns table (
                       id             bigint,
@@ -433,7 +434,9 @@ create or replace function crm.fn_select_contract(
                       create_dttm    timestamp,
                       update_dttm    timestamp,
                       create_user_id bigint,
-                      update_user_id bigint
+                      update_user_id bigint,
+                      r_cnt          integer,
+                      p_cnt          integer
                   )
     language plpgsql
 as
@@ -442,32 +445,55 @@ declare
     v_sql text;
 begin
     v_sql := '
-        select
-            c.id,
-            c.contract_num,
-            c.contract_date,
-            c.contractor_id,
-            c.create_dttm,
-            c.update_dttm,
-            c.create_user_id,
-            c.update_user_id
-        from crm.contract c
-        where 1 = 1
+        with q as (
+            select
+                c.id,
+                c.contract_num,
+                c.contract_date,
+                c.contractor_id,
+                c.create_dttm,
+                c.update_dttm,
+                c.create_user_id,
+                c.update_user_id,
+                count(*) over()::integer as r_cnt
+            from crm.contract c
+            where 1 = 1
     ';
 
     if p_id is not null then
         v_sql := v_sql || ' and c.id = $1';
     end if;
 
+    v_sql := v_sql || '
+        )
+        select
+            q.id,
+            q.contract_num,
+            q.contract_date,
+            q.contractor_id,
+            q.create_dttm,
+            q.update_dttm,
+            q.create_user_id,
+            q.update_user_id,
+            q.r_cnt,
+            case
+                when coalesce($2, 0) > 0
+                    then ((q.r_cnt + $2 - 1) / $2)
+                else 1
+            end as p_cnt
+        from q
+        order by q.id
+    ';
+
     if p_lmt is not null and p_lmt > 0 then
-        v_sql := v_sql || format(' order by c.id limit %s', p_lmt);
+        v_sql := v_sql || ' limit $2';
     end if;
 
-    if p_id is not null then
-        return query execute v_sql using p_id;
-    else
-        return query execute v_sql;
+    if p_fst is not null and p_fst > 0 then
+        v_sql := v_sql || ' offset $3';
     end if;
+
+    return query execute v_sql using p_id, p_lmt, p_fst;
 end;
 $$;
 

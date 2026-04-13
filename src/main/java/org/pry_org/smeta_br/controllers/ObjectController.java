@@ -15,11 +15,7 @@ public class ObjectController {
 
     @GetMapping("/objects")
     public String openObjectsPage(
-            @RequestParam(required = false) Long pId,
-            @RequestParam(required = false, defaultValue = "10") Integer pLmt,
-            Model model
     ) {
-        model.addAttribute("contracts", contractRepository.selectContract(pId, pLmt));
         return "objects.html";
     }
 }

@@ -13,7 +13,7 @@ public class ContractRepository {
 
     private final JdbcClient jdbcClient;
 
-    public List<ContractDTO> selectContract(Long pId, Integer pLmt) {
+    public List<ContractDTO> selectContract(Long pId, Integer pLmt, Integer pFst) {
         return jdbcClient
                 .sql("""
                         select 
@@ -25,10 +25,11 @@ public class ContractRepository {
                             update_dttm    as updateDttm,
                             create_user_id as createUserId,
                             update_user_id as updateUserId
-                        from crm.fn_select_contract(:pId, :pLmt)
+                        from crm.fn_select_contract(:pId, :pLmt, :pFst)
                         """)
                 .param("pId", pId)
                 .param("pLmt", pLmt)
+                .param("pFst", pFst)
                 .query((rs, rowNum) -> new ContractDTO(
                         rs.getObject("id", Long.class),
                         rs.getString("contractNum"),
