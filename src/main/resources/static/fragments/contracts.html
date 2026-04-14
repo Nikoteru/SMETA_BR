@@ -8,12 +8,12 @@
         </label>
         <label>
             pLmt:
-            <input type="number" id="contracts-pLmt" value="20">
+            <input type="number" id="contracts-pLmt" value="10">
         </label>
-        <label>
-            pFst:
-            <input type="number" id="contracts-pFst">
-        </label>
+
+        <!-- Можно оставить для отладки, но пользователю обычно не нужен -->
+        <input type="hidden" id="contracts-pFst" value="0">
+
         <button type="button" id="load-contracts-btn">Загрузить</button>
     </div>
 
@@ -36,4 +36,16 @@
         </thead>
         <tbody></tbody>
     </table>
+
+    <div id="contracts-pagination" class="contracts-pagination" style="display:none;">
+        <button type="button" id="contracts-first-btn" class="page-nav-btn">«</button>
+        <button type="button" id="contracts-prev-btn" class="page-nav-btn">‹</button>
+
+        <div id="contracts-pages" class="contracts-pages"></div>
+
+        <button type="button" id="contracts-next-btn" class="page-nav-btn">›</button>
+        <button type="button" id="contracts-last-btn" class="page-nav-btn">»</button>
+
+        <span id="contracts-page-info" class="contracts-page-info"></span>
+    </div>
 </div>

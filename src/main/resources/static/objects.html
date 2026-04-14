@@ -151,13 +151,104 @@
             border-radius: 6px;
             background: #fff;
         }
+
+        .contracts-pagination {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: #ffffff;
+            border: 1px solid #d7e3f0;
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            flex-wrap: wrap;
+        }
+
+        .contracts-pages {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn,
+        .page-nav-btn {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #c7d7e7;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #ffffff 0%, #f2f7fc 100%);
+            color: #24415c;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover,
+        .page-nav-btn:hover {
+            transform: translateY(-1px);
+            border-color: #8fb6da;
+            box-shadow: 0 4px 10px rgba(126, 168, 207, 0.25);
+        }
+
+        .page-btn.active {
+            background: linear-gradient(180deg, #9fc5e8 0%, #7ea8cf 100%);
+            color: #ffffff;
+            border-color: #6f9dc7;
+            box-shadow: 0 4px 12px rgba(126, 168, 207, 0.35);
+        }
+
+        .page-btn:disabled,
+        .page-nav-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .page-dots {
+            min-width: 24px;
+            text-align: center;
+            color: #6f7f90;
+            font-weight: 700;
+        }
+
+        .contracts-page-info {
+            margin-left: auto;
+            font-size: 13px;
+            color: #4f6275;
+            white-space: nowrap;
+        }
+
+        .top-bar input,
+        .contracts-fragment input[type="number"] {
+            min-width: 90px;
+            padding: 8px 10px;
+            font-size: 14px;
+            border: 1px solid #b9c9d8;
+            border-radius: 8px;
+            background: #fff;
+            margin-right: 8px;
+        }
+
+        .contracts-fragment label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 700;
+        }
     </style>
+
 </head>
 <body>
 <div class="app-layout">
     <div id="sidebar-placeholder"></div>
-
-
 
     <div class="main-area">
         <div class="top-bar">
@@ -168,117 +259,19 @@
                 <option value="2">Заказчик</option>
             </select>
         </div>
+
         <div id="contracts-modal" style="display: none;"></div>
     </div>
 </div>
 
 <script src="/js/layout.js"></script>
 <script>
+    const contractsState = {
+        page: 1,
+        pageCount: 1,
+        rowCount: 0
+    };
 
-    async function loadFragment(url, selector) {
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error(`Не удалось загрузить фрагмент: HTTP ${response.status}`);
-        }
-
-        const html = await response.text();
-        document.querySelector(selector).innerHTML = html;
-    }
-
-    async function loadContracts() {
-        const pId = document.getElementById('contracts-pId')?.value;
-        const pLmt = document.getElementById('contracts-pLmt')?.value || 10;
-
-        let url = `/api/contracts?pLmt=${encodeURIComponent(pLmt)}`;
-        if (pId) {
-            url += `&pId=${encodeURIComponent(pId)}`;
-        }
-
-        const message = document.getElementById('contracts-message');
-        const table = document.getElementById('contractsTable');
-        const tbody = table.querySelector('tbody');
-
-        message.textContent = 'Загрузка...';
-        tbody.innerHTML = '';
-        table.style.display = 'none';
-
-        try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const contracts = await response.json();
-
-            if (!contracts || contracts.length === 0) {
-                message.textContent = 'Контракты не найдены';
-                return;
-            }
-
-            contracts.forEach(contract => {
-                const row = document.createElement('tr');
-
-                row.innerHTML = `
-                    <td>${contract.id ?? ''}</td>
-                    <td>${contract.contractNum ?? ''}</td>
-                    <td>${contract.contractDate ?? ''}</td>
-                    <td>${contract.contractorId ?? ''}</td>
-                    <td>${contract.createDttm ?? ''}</td>
-                    <td>${contract.updateDttm ?? ''}</td>
-                    <td>${contract.createUserId ?? ''}</td>
-                    <td>${contract.updateUserId ?? ''}</td>
-                `;
-
-                tbody.appendChild(row);
-            });
-
-            message.textContent = '';
-            table.style.display = 'table';
-        } catch (error) {
-            message.textContent = 'Ошибка загрузки данных: ' + error.message;
-        }
-    }
-
-    async function showContractsFragment() {
-        const modal = document.getElementById('contracts-modal');
-
-        if (!modal.dataset.loaded) {
-            await loadFragment('/fragments/contracts.html', '#contracts-modal');
-            modal.dataset.loaded = 'true';
-
-            document
-                .getElementById('load-contracts-btn')
-                .addEventListener('click', loadContracts);
-        }
-
-        modal.style.display = 'block';
-        await loadContracts();
-    }
-
-    function hideContractsFragment() {
-        const modal = document.getElementById('contracts-modal');
-        modal.style.display = 'none';
-        modal.innerHTML = '';
-        delete modal.dataset.loaded;
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const docTypeSelect = document.getElementById('docType');
-
-        docTypeSelect.addEventListener('change', async function () {
-            const docType = this.value;
-
-            if (docType === '1') {
-                await showContractsFragment();
-            } else {
-                hideContractsFragment();
-            }
-        });
-    });
-</script>
-<script> //todo поправить - пока подсвечивается только Главная
     async function loadFragment(url, selector) {
         const response = await fetch(url);
 
@@ -297,6 +290,216 @@
             const linkPage = (link.getAttribute('href') || '').split('/').pop().toLowerCase();
             link.classList.toggle('active', linkPage === currentPage);
         });
+    }
+
+    async function loadContracts(page = null) {
+        const pId = document.getElementById('contracts-pId')?.value?.trim();
+        const pLmt = Math.max(1, Number(document.getElementById('contracts-pLmt')?.value || 10));
+        const pFstInput = document.getElementById('contracts-pFst');
+
+        let pFst = Math.max(0, Number(pFstInput?.value || 0));
+
+        if (page !== null) {
+            pFst = (page - 1) * pLmt;
+        }
+
+        if (pFstInput) {
+            pFstInput.value = pFst;
+        }
+
+        contractsState.page = Math.floor(pFst / pLmt) + 1;
+
+        let url = `/api/contracts?pLmt=${encodeURIComponent(pLmt)}&pFst=${encodeURIComponent(pFst)}`;
+        if (pId) {
+            url += `&pId=${encodeURIComponent(pId)}`;
+        }
+
+        const message = document.getElementById('contracts-message');
+        const table = document.getElementById('contractsTable');
+        const tbody = table.querySelector('tbody');
+        const pagination = document.getElementById('contracts-pagination');
+
+        message.textContent = 'Загрузка...';
+        tbody.innerHTML = '';
+        table.style.display = 'none';
+
+        if (pagination) {
+            pagination.style.display = 'none';
+        }
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const contracts = await response.json();
+
+            if (!contracts || contracts.length === 0) {
+                contractsState.pageCount = 1;
+                contractsState.rowCount = 0;
+                message.textContent = 'Контракты не найдены';
+                renderContractsPagination();
+                return;
+            }
+
+            contracts.forEach(contract => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                <td>${contract.id ?? ''}</td>
+                <td>${contract.contractNum ?? ''}</td>
+                <td>${contract.contractDate ?? ''}</td>
+                <td>${contract.contractorId ?? ''}</td>
+                <td>${contract.createDttm ?? ''}</td>
+                <td>${contract.updateDttm ?? ''}</td>
+                <td>${contract.createUserId ?? ''}</td>
+                <td>${contract.updateUserId ?? ''}</td>
+            `;
+
+                tbody.appendChild(row);
+            });
+
+            const firstRow = contracts[0];
+            contractsState.pageCount = Number(firstRow.pCnt ?? 1);
+            contractsState.rowCount = Number(firstRow.rCnt ?? contracts.length);
+
+            if (contractsState.page > contractsState.pageCount) {
+                contractsState.page = contractsState.pageCount;
+            }
+
+            message.textContent = '';
+            table.style.display = 'table';
+            renderContractsPagination();
+        } catch (error) {
+            message.textContent = 'Ошибка загрузки данных: ' + error.message;
+        }
+    }
+
+    function getPageItems(currentPage, totalPages) {
+        const items = [];
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                items.push(i);
+            }
+            return items;
+        }
+
+        items.push(1);
+
+        if (currentPage <= 4) {
+            items.push(2, 3, 4, 5, '...');
+        } else if (currentPage >= totalPages - 3) {
+            items.push('...');
+            items.push(totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1);
+        } else {
+            items.push('...');
+            items.push(currentPage - 1, currentPage, currentPage + 1);
+            items.push('...');
+        }
+
+        items.push(totalPages);
+
+        return items;
+    }
+
+    function renderContractsPagination() {
+        const pagination = document.getElementById('contracts-pagination');
+        const pagesBox = document.getElementById('contracts-pages');
+        const firstBtn = document.getElementById('contracts-first-btn');
+        const prevBtn = document.getElementById('contracts-prev-btn');
+        const nextBtn = document.getElementById('contracts-next-btn');
+        const lastBtn = document.getElementById('contracts-last-btn');
+        const pageInfo = document.getElementById('contracts-page-info');
+
+        if (!pagination || !pagesBox || !firstBtn || !prevBtn || !nextBtn || !lastBtn || !pageInfo) {
+            return;
+        }
+
+        if (contractsState.rowCount === 0 || contractsState.pageCount <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+
+        const currentPage = contractsState.page;
+        const totalPages = contractsState.pageCount;
+
+        pagesBox.innerHTML = '';
+
+        const pageItems = getPageItems(currentPage, totalPages);
+
+        pageItems.forEach(item => {
+            if (item === '...') {
+                const dots = document.createElement('span');
+                dots.className = 'page-dots';
+                dots.textContent = '...';
+                pagesBox.appendChild(dots);
+                return;
+            }
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'page-btn';
+            btn.textContent = item;
+
+            if (item === currentPage) {
+                btn.classList.add('active');
+                btn.disabled = true;
+            } else {
+                btn.addEventListener('click', () => loadContracts(item));
+            }
+
+            pagesBox.appendChild(btn);
+        });
+
+        firstBtn.disabled = currentPage === 1;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+        lastBtn.disabled = currentPage === totalPages;
+
+        firstBtn.onclick = () => loadContracts(1);
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                loadContracts(currentPage - 1);
+            }
+        };
+        nextBtn.onclick = () => {
+            if (currentPage < totalPages) {
+                loadContracts(currentPage + 1);
+            }
+        };
+        lastBtn.onclick = () => loadContracts(totalPages);
+
+        pageInfo.textContent =
+            `Страница ${currentPage} из ${totalPages} • Всего записей: ${contractsState.rowCount}`;
+
+        pagination.style.display = 'flex';
+    }
+
+    async function showContractsFragment() {
+        const modal = document.getElementById('contracts-modal');
+
+        if (!modal.dataset.loaded) {
+            await loadFragment('/fragments/contracts.html', '#contracts-modal');
+            modal.dataset.loaded = 'true';
+
+            const loadBtn = document.getElementById('load-contracts-btn');
+            if (loadBtn) {
+                loadBtn.addEventListener('click', () => loadContracts());
+            }
+        }
+
+        modal.style.display = 'block';
+        await loadContracts(1);
+    }
+
+    function hideContractsFragment() {
+        const modal = document.getElementById('contracts-modal');
+        modal.style.display = 'none';
+        modal.innerHTML = '';
+        delete modal.dataset.loaded;
     }
 
     async function initPage() {

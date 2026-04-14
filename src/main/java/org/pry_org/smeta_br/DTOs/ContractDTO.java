@@ -6,11 +6,13 @@ import java.time.LocalDateTime;
 public record ContractDTO(
         Long id,
         String contractNum,
-        LocalDate contractDate,
+        String contractDate,
         Long contractorId,
-        LocalDateTime createDttm,
-        LocalDateTime updateDttm,
+        String createDttm,
+        String updateDttm,
         Long createUserId,
-        Long updateUserId
+        Long updateUserId,
+        Integer rCnt,
+        Integer pCnt
 ) {
 }

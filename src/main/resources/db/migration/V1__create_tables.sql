@@ -1,3 +1,5 @@
+create schema if not exists crm;
+
 DROP TABLE IF EXISTS crm.stage;
 
 CREATE TABLE IF NOT EXISTS crm.stage
@@ -429,10 +431,10 @@ create or replace function crm.fn_select_contract(
     returns table (
                       id             bigint,
                       contract_num   varchar,
-                      contract_date  date,
+                      contract_date  text,
                       contractor_id  bigint,
-                      create_dttm    timestamp,
-                      update_dttm    timestamp,
+                      create_dttm    text,
+                      update_dttm    text,
                       create_user_id bigint,
                       update_user_id bigint,
                       r_cnt          integer,
@@ -447,27 +449,28 @@ begin
     v_sql := '
         with q as (
             select
-                c.id,
+                c.id
+,
                 c.contract_num,
-                c.contract_date,
+                to_char(c.contract_date, ''dd.mm.yyyy'') as contract_date,
                 c.contractor_id,
-                c.create_dttm,
-                c.update_dttm,
+				to_char(c.create_dttm, ''dd.mm.yyyy hh:mi:ss'') as create_dttm,
+				to_char(c.update_dttm, ''dd.mm.yyyy hh:mi:ss'') as update_dttm,
                 c.create_user_id,
                 c.update_user_id,
                 count(*) over()::integer as r_cnt
             from crm.contract c
             where 1 = 1
     ';
-
     if p_id is not null then
-        v_sql := v_sql || ' and c.id = $1';
+        v_sql := v_sql || ' and c.id
+ = $1';
     end if;
-
     v_sql := v_sql || '
         )
         select
-            q.id,
+            q.id
+,
             q.contract_num,
             q.contract_date,
             q.contractor_id,
@@ -484,19 +487,33 @@ begin
         from q
         order by q.id
     ';
-
     if p_lmt is not null and p_lmt > 0 then
         v_sql := v_sql || ' limit $2';
     end if;
-
     if p_fst is not null and p_fst > 0 then
         v_sql := v_sql || ' offset $3';
     end if;
-
     return query execute v_sql using p_id, p_lmt, p_fst;
 end;
 $$;
 
-INSERT INTO crm.contract(
-    contract_num, contract_date, contractor_id)
-VALUES ('1sdafa1', '5999-12-31', 1);
+DO $$
+    DECLARE
+        i int := 1;
+    BEGIN
+        WHILE i <= 50 LOOP
+                INSERT INTO crm.contract (
+                    contract_num,
+                    contract_date,
+                    contractor_id
+                )
+                VALUES (
+                           'contract_' || lpad(i::text, 3, '0'),
+                           DATE '5999-12-31',
+                           1
+                       );
+
+                i := i + 1;
+            END LOOP;
+    END
+$$;
