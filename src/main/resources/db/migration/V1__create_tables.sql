@@ -424,9 +424,11 @@ INSERT INTO crm."user"(
 VALUES ('test','test','test');
 
 create or replace function crm.fn_select_contract(
-    p_id  bigint default null,
-    p_lmt integer default null,
-    p_fst integer default null
+    p_id         bigint default null,
+    p_lmt        integer default null,
+    p_fst        integer default null,
+    p_order_cols text[] default null,
+    p_order_dirs text[] default null
 )
     returns table (
                       id             bigint,
@@ -444,33 +446,84 @@ create or replace function crm.fn_select_contract(
 as
 $$
 declare
-    v_sql text;
+    v_sql         text;
+    v_order_by    text := 'q.id desc';
+    v_order_parts text[] := '{}';
+    v_col         text;
+    v_dir         text;
+    v_i           integer;
 begin
+    /*
+      Собираем ORDER BY из массивов:
+      p_order_cols = ['contract_num', 'contract_date']
+      p_order_dirs = ['asc', 'desc']
+
+      => ORDER BY q.contract_num asc, q.contract_date desc
+    */
+    if p_order_cols is not null and array_length(p_order_cols, 1) > 0 then
+        v_order_parts := '{}';
+
+        for v_i in 1 .. array_length(p_order_cols, 1) loop
+                v_col := lower(trim(p_order_cols[v_i]));
+                v_dir := lower(coalesce(trim(p_order_dirs[v_i]), 'asc'));
+
+                if v_dir not in ('asc', 'desc') then
+                    raise exception 'Некорректное направление сортировки: %', v_dir;
+                end if;
+
+                /*
+                  Белый список допустимых полей сортировки.
+                  Здесь разрешаем сортировать по alias из q.
+                */
+                if v_col not in (
+                                 'id',
+                                 'contract_num',
+                                 'contract_date',
+                                 'contractor_id',
+                                 'create_dttm',
+                                 'update_dttm',
+                                 'create_user_id',
+                                 'update_user_id',
+                                 'r_cnt'
+                    ) then
+                    raise exception 'Сортировка по полю "%" запрещена', v_col;
+                end if;
+
+                v_order_parts := array_append(
+                        v_order_parts,
+                        format('q.%I %s', v_col, upper(v_dir))
+                                 );
+            end loop;
+
+        if array_length(v_order_parts, 1) > 0 then
+            v_order_by := array_to_string(v_order_parts, ', ');
+        end if;
+    end if;
+
     v_sql := '
         with q as (
             select
-                c.id
-,
+                c.id,
                 c.contract_num,
                 to_char(c.contract_date, ''dd.mm.yyyy'') as contract_date,
                 c.contractor_id,
-				to_char(c.create_dttm, ''dd.mm.yyyy hh:mi:ss'') as create_dttm,
-				to_char(c.update_dttm, ''dd.mm.yyyy hh:mi:ss'') as update_dttm,
+                to_char(c.create_dttm, ''dd.mm.yyyy hh24:mi:ss'') as create_dttm,
+                to_char(c.update_dttm, ''dd.mm.yyyy hh24:mi:ss'') as update_dttm,
                 c.create_user_id,
                 c.update_user_id,
                 count(*) over()::integer as r_cnt
             from crm.contract c
             where 1 = 1
     ';
+
     if p_id is not null then
-        v_sql := v_sql || ' and c.id
- = $1';
+        v_sql := v_sql || ' and c.id = $1';
     end if;
+
     v_sql := v_sql || '
         )
         select
-            q.id
-,
+            q.id,
             q.contract_num,
             q.contract_date,
             q.contractor_id,
@@ -485,17 +538,20 @@ begin
                 else 1
             end as p_cnt
         from q
-        order by q.id
-    ';
+        order by ' || v_order_by;
+
     if p_lmt is not null and p_lmt > 0 then
         v_sql := v_sql || ' limit $2';
     end if;
+
     if p_fst is not null and p_fst > 0 then
         v_sql := v_sql || ' offset $3';
     end if;
+
     return query execute v_sql using p_id, p_lmt, p_fst;
 end;
 $$;
+
 
 DO $$
     DECLARE

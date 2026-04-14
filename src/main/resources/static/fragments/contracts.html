@@ -1,18 +1,21 @@
 <div class="contracts-fragment">
     <h1>Список контрактов</h1>
 
-    <div>
+    <div class="contracts-toolbar">
         <label>
             pId:
             <input type="number" id="contracts-pId">
         </label>
+
         <label>
             pLmt:
-            <input type="number" id="contracts-pLmt" value="10">
+            <input type="number" id="contracts-pLmt" value="20" min="1" step="1">
         </label>
 
-        <!-- Можно оставить для отладки, но пользователю обычно не нужен -->
-        <input type="hidden" id="contracts-pFst" value="0">
+        <label>
+            pFst:
+            <input type="number" id="contracts-pFst" value="0" min="0" step="1">
+        </label>
 
         <button type="button" id="load-contracts-btn">Загрузить</button>
     </div>
@@ -24,14 +27,77 @@
     <table id="contractsTable" style="display:none;">
         <thead>
         <tr>
-            <th>ID</th>
-            <th>Номер договора</th>
-            <th>Дата договора</th>
-            <th>ID контрагента</th>
-            <th>Создан</th>
-            <th>Обновлён</th>
-            <th>Создал пользователь</th>
-            <th>Обновил пользователь</th>
+            <th class="sortable-col" data-sort-col="id">
+                <div class="th-sort-wrap">
+                    <span>ID</span>
+                    <span class="sort-indicator">↕</span>
+                    <span class="sort-priority"></span>
+                    <button type="button" class="sort-remove-btn" title="Убрать сортировку">×</button>
+                </div>
+            </th>
+
+            <th class="sortable-col" data-sort-col="contract_num">
+                <div class="th-sort-wrap">
+                    <span>Номер договора</span>
+                    <span class="sort-indicator">↕</span>
+                    <span class="sort-priority"></span>
+                    <button type="button" class="sort-remove-btn" title="Убрать сортировку">×</button>
+                </div>
+            </th>
+
+            <th class="sortable-col" data-sort-col="contract_date">
+                <div class="th-sort-wrap">
+                    <span>Дата договора</span>
+                    <span class="sort-indicator">↕</span>
+                    <span class="sort-priority"></span>
+                    <button type="button" class="sort-remove-btn" title="Убрать сортировку">×</button>
+                </div>
+            </th>
+
+            <th class="sortable-col" data-sort-col="contractor_id">
+                <div class="th-sort-wrap">
+                    <span>ID контрагента</span>
+                    <span class="sort-indicator">↕</span>
+                    <span class="sort-priority"></span>
+                    <button type="button" class="sort-remove-btn" title="Убрать сортировку">×</button>
+                </div>
+            </th>
+
+            <th class="sortable-col" data-sort-col="create_dttm">
+                <div class="th-sort-wrap">
+                    <span>Создан</span>
+                    <span class="sort-indicator">↕</span>
+                    <span class="sort-priority"></span>
+                    <button type="button" class="sort-remove-btn" title="Убрать сортировку">×</button>
+                </div>
+            </th>
+
+            <th class="sortable-col" data-sort-col="update_dttm">
+                <div class="th-sort-wrap">
+                    <span>Обновлён</span>
+                    <span class="sort-indicator">↕</span>
+                    <span class="sort-priority"></span>
+                    <button type="button" class="sort-remove-btn" title="Убрать сортировку">×</button>
+                </div>
+            </th>
+
+            <th class="sortable-col" data-sort-col="create_user_id">
+                <div class="th-sort-wrap">
+                    <span>Создал пользователь</span>
+                    <span class="sort-indicator">↕</span>
+                    <span class="sort-priority"></span>
+                    <button type="button" class="sort-remove-btn" title="Убрать сортировку">×</button>
+                </div>
+            </th>
+
+            <th class="sortable-col" data-sort-col="update_user_id">
+                <div class="th-sort-wrap">
+                    <span>Обновил пользователь</span>
+                    <span class="sort-indicator">↕</span>
+                    <span class="sort-priority"></span>
+                    <button type="button" class="sort-remove-btn" title="Убрать сортировку">×</button>
+                </div>
+            </th>
         </tr>
         </thead>
         <tbody></tbody>

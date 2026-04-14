@@ -243,6 +243,187 @@
             font-size: 14px;
             font-weight: 700;
         }
+
+        .contracts-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contracts-toolbar label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .contracts-toolbar input[type="number"] {
+            min-width: 95px;
+            padding: 8px 10px;
+            font-size: 14px;
+            border: 1px solid #b9c9d8;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .contracts-toolbar button {
+            padding: 9px 14px;
+            border: 1px solid #7ea8cf;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #9fc5e8 0%, #7ea8cf 100%);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .contracts-toolbar button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(126, 168, 207, 0.3);
+        }
+
+        .sortable-col {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: 0.2s ease;
+        }
+
+        .sortable-col:hover {
+            filter: brightness(0.98);
+        }
+
+        .th-sort-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 28px;
+        }
+
+        .sort-indicator {
+            min-width: 14px;
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .sort-priority {
+            min-width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            background: #dcebf8;
+            color: #24415c;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+        }
+
+        .sort-remove-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 999px;
+            background: #d9534f;
+            color: #fff;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            padding: 0;
+        }
+
+        .sort-remove-btn:hover {
+            filter: brightness(0.95);
+        }
+
+        .sortable-col.active-sort {
+            background: linear-gradient(180deg, #cfe3f7 0%, #b7d3ee 100%);
+        }
+
+        .sortable-col.sort-asc .sort-indicator,
+        .sortable-col.sort-desc .sort-indicator {
+            opacity: 1;
+            font-weight: 700;
+        }
+
+        .contracts-pagination {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: #ffffff;
+            border: 1px solid #d7e3f0;
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            flex-wrap: wrap;
+        }
+
+        .contracts-pages {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn,
+        .page-nav-btn {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #c7d7e7;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #ffffff 0%, #f2f7fc 100%);
+            color: #24415c;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover,
+        .page-nav-btn:hover {
+            transform: translateY(-1px);
+            border-color: #8fb6da;
+            box-shadow: 0 4px 10px rgba(126, 168, 207, 0.25);
+        }
+
+        .page-btn.active {
+            background: linear-gradient(180deg, #9fc5e8 0%, #7ea8cf 100%);
+            color: #ffffff;
+            border-color: #6f9dc7;
+            box-shadow: 0 4px 12px rgba(126, 168, 207, 0.35);
+        }
+
+        .page-btn:disabled,
+        .page-nav-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .page-dots {
+            min-width: 24px;
+            text-align: center;
+            color: #6f7f90;
+            font-weight: 700;
+        }
+
+        .contracts-page-info {
+            margin-left: auto;
+            font-size: 13px;
+            color: #4f6275;
+            white-space: nowrap;
+        }
     </style>
 
 </head>
@@ -269,7 +450,9 @@
     const contractsState = {
         page: 1,
         pageCount: 1,
-        rowCount: 0
+        rowCount: 0,
+        sortCols: [],
+        sortDirs: []
     };
 
     async function loadFragment(url, selector) {
@@ -309,10 +492,18 @@
 
         contractsState.page = Math.floor(pFst / pLmt) + 1;
 
-        let url = `/api/contracts?pLmt=${encodeURIComponent(pLmt)}&pFst=${encodeURIComponent(pFst)}`;
+        const params = new URLSearchParams();
+        params.set('pLmt', String(pLmt));
+        params.set('pFst', String(pFst));
+
         if (pId) {
-            url += `&pId=${encodeURIComponent(pId)}`;
+            params.set('pId', pId);
         }
+
+        contractsState.sortCols.forEach(col => params.append('pOrderCols', col));
+        contractsState.sortDirs.forEach(dir => params.append('pOrderDirs', dir));
+
+        const url = `/api/contracts?${params.toString()}`;
 
         const message = document.getElementById('contracts-message');
         const table = document.getElementById('contractsTable');
@@ -371,6 +562,8 @@
 
             message.textContent = '';
             table.style.display = 'table';
+
+            renderContractsSortHeaders();
             renderContractsPagination();
         } catch (error) {
             message.textContent = 'Ошибка загрузки данных: ' + error.message;
@@ -403,6 +596,79 @@
         items.push(totalPages);
 
         return items;
+    }
+
+    function renderContractsPagination() {
+        const pagination = document.getElementById('contracts-pagination');
+        const pagesBox = document.getElementById('contracts-pages');
+        const firstBtn = document.getElementById('contracts-first-btn');
+        const prevBtn = document.getElementById('contracts-prev-btn');
+        const nextBtn = document.getElementById('contracts-next-btn');
+        const lastBtn = document.getElementById('contracts-last-btn');
+        const pageInfo = document.getElementById('contracts-page-info');
+
+        if (!pagination || !pagesBox || !firstBtn || !prevBtn || !nextBtn || !lastBtn || !pageInfo) {
+            return;
+        }
+
+        if (contractsState.rowCount === 0) {
+            pagination.style.display = 'none';
+            return;
+        }
+
+        const currentPage = contractsState.page;
+        const totalPages = contractsState.pageCount;
+
+        pagesBox.innerHTML = '';
+
+        const pageItems = getPageItems(currentPage, totalPages);
+
+        pageItems.forEach(item => {
+            if (item === '...') {
+                const dots = document.createElement('span');
+                dots.className = 'page-dots';
+                dots.textContent = '...';
+                pagesBox.appendChild(dots);
+                return;
+            }
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'page-btn';
+            btn.textContent = item;
+
+            if (item === currentPage) {
+                btn.classList.add('active');
+                btn.disabled = true;
+            } else {
+                btn.addEventListener('click', () => loadContracts(item));
+            }
+
+            pagesBox.appendChild(btn);
+        });
+
+        firstBtn.disabled = currentPage === 1;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+        lastBtn.disabled = currentPage === totalPages;
+
+        firstBtn.onclick = () => loadContracts(1);
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                loadContracts(currentPage - 1);
+            }
+        };
+        nextBtn.onclick = () => {
+            if (currentPage < totalPages) {
+                loadContracts(currentPage + 1);
+            }
+        };
+        lastBtn.onclick = () => loadContracts(totalPages);
+
+        pageInfo.textContent =
+            `Страница ${currentPage} из ${totalPages} • Всего записей: ${contractsState.rowCount}`;
+
+        pagination.style.display = 'flex';
     }
 
     function renderContractsPagination() {
@@ -485,6 +751,8 @@
             await loadFragment('/fragments/contracts.html', '#contracts-modal');
             modal.dataset.loaded = 'true';
 
+            initContractsSorting();
+
             const loadBtn = document.getElementById('load-contracts-btn');
             if (loadBtn) {
                 loadBtn.addEventListener('click', () => loadContracts());
@@ -492,6 +760,7 @@
         }
 
         modal.style.display = 'block';
+        renderContractsSortHeaders();
         await loadContracts(1);
     }
 
@@ -520,6 +789,96 @@
     }
 
     document.addEventListener('DOMContentLoaded', initPage);
+
+    function toggleContractsSort(columnName) {
+        const index = contractsState.sortCols.indexOf(columnName);
+
+        if (index === -1) {
+            contractsState.sortCols.push(columnName);
+            contractsState.sortDirs.push('asc');
+        } else {
+            contractsState.sortDirs[index] =
+                contractsState.sortDirs[index] === 'asc' ? 'desc' : 'asc';
+        }
+
+        renderContractsSortHeaders();
+        loadContracts(1);
+    }
+
+    function removeContractsSort(columnName) {
+        const index = contractsState.sortCols.indexOf(columnName);
+
+        if (index === -1) {
+            return;
+        }
+
+        contractsState.sortCols.splice(index, 1);
+        contractsState.sortDirs.splice(index, 1);
+
+        renderContractsSortHeaders();
+        loadContracts(1);
+    }
+
+    function renderContractsSortHeaders() {
+        document.querySelectorAll('#contractsTable th[data-sort-col]').forEach(th => {
+            const columnName = th.dataset.sortCol;
+            const index = contractsState.sortCols.indexOf(columnName);
+
+            const indicator = th.querySelector('.sort-indicator');
+            const priority = th.querySelector('.sort-priority');
+            const removeBtn = th.querySelector('.sort-remove-btn');
+
+            th.classList.remove('active-sort', 'sort-asc', 'sort-desc');
+
+            if (index === -1) {
+                if (indicator) indicator.textContent = '↕';
+                if (priority) {
+                    priority.textContent = '';
+                    priority.style.visibility = 'hidden';
+                }
+                if (removeBtn) {
+                    removeBtn.style.visibility = 'hidden';
+                }
+                return;
+            }
+
+            const dir = contractsState.sortDirs[index];
+
+            th.classList.add('active-sort');
+            th.classList.add(dir === 'asc' ? 'sort-asc' : 'sort-desc');
+
+            if (indicator) {
+                indicator.textContent = dir === 'asc' ? '▲' : '▼';
+            }
+
+            if (priority) {
+                priority.textContent = String(index + 1);
+                priority.style.visibility = 'visible';
+            }
+
+            if (removeBtn) {
+                removeBtn.style.visibility = 'visible';
+            }
+        });
+    }
+
+    function initContractsSorting() {
+        document.querySelectorAll('#contractsTable th[data-sort-col]').forEach(th => {
+            th.addEventListener('click', () => {
+                toggleContractsSort(th.dataset.sortCol);
+            });
+
+            const removeBtn = th.querySelector('.sort-remove-btn');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    removeContractsSort(th.dataset.sortCol);
+                });
+            }
+        });
+
+        renderContractsSortHeaders();
+    }
 </script>
 </body>
 </html>
