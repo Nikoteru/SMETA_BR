@@ -29,8 +29,40 @@ public class ContractsController {
             @RequestParam(required = false, defaultValue = "10") Integer pLmt,
             @RequestParam(required = false) Integer pFst,
             @RequestParam(required = false) String[] pOrderCols,
-            @RequestParam(required = false) String[] pOrderDirs
+            @RequestParam(required = false) String[] pOrderDirs,
+
+            @RequestParam(required = false) String pContractNum,
+
+            @RequestParam(required = false)
+            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+            java.time.LocalDate pContractDate,
+
+            @RequestParam(required = false) Long pContractorId,
+
+            @RequestParam(required = false)
+            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
+            java.time.LocalDateTime pCreateDttm,
+
+            @RequestParam(required = false)
+            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
+            java.time.LocalDateTime pUpdateDttm,
+
+            @RequestParam(required = false) Long pCreateUserId,
+            @RequestParam(required = false) Long pUpdateUserId
     ) {
-        return contractRepository.selectContract(pId, pLmt, pFst, pOrderCols, pOrderDirs);
+        return contractRepository.selectContract(
+                pId,
+                pLmt,
+                pFst,
+                pOrderCols,
+                pOrderDirs,
+                pContractNum,
+                pContractDate,
+                pContractorId,
+                pCreateDttm,
+                pUpdateDttm,
+                pCreateUserId,
+                pUpdateUserId
+        );
     }
 }

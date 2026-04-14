@@ -5,7 +5,10 @@ import org.pry_org.smeta_br.DTOs.ContractDTO;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -19,7 +22,14 @@ public class ContractRepository {
             Integer pLmt,
             Integer pFst,
             String[] pOrderCols,
-            String[] pOrderDirs
+            String[] pOrderDirs,
+            String pContractNum,
+            LocalDate pContractDate,
+            Long pContractorId,
+            LocalDateTime pCreateDttm,
+            LocalDateTime pUpdateDttm,
+            Long pCreateUserId,
+            Long pUpdateUserId
     ) {
         String sql = """
                 select
@@ -33,29 +43,15 @@ public class ContractRepository {
                     update_user_id as updateUserId,
                     r_cnt          as rCnt,
                     p_cnt          as pCnt
-                from crm.fn_select_contract(?, ?, ?, ?, ?)
+                from crm.fn_select_contract(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         return jdbcTemplate.query(
                 sql,
                 ps -> {
-                    if (pId != null) {
-                        ps.setLong(1, pId);
-                    } else {
-                        ps.setNull(1, Types.BIGINT);
-                    }
-
-                    if (pLmt != null) {
-                        ps.setInt(2, pLmt);
-                    } else {
-                        ps.setNull(2, Types.INTEGER);
-                    }
-
-                    if (pFst != null) {
-                        ps.setInt(3, pFst);
-                    } else {
-                        ps.setNull(3, Types.INTEGER);
-                    }
+                    if (pId != null) ps.setLong(1, pId); else ps.setNull(1, Types.BIGINT);
+                    if (pLmt != null) ps.setInt(2, pLmt); else ps.setNull(2, Types.INTEGER);
+                    if (pFst != null) ps.setInt(3, pFst); else ps.setNull(3, Types.INTEGER);
 
                     if (pOrderCols != null && pOrderCols.length > 0) {
                         ps.setArray(4, ps.getConnection().createArrayOf("text", pOrderCols));
@@ -68,6 +64,35 @@ public class ContractRepository {
                     } else {
                         ps.setNull(5, Types.ARRAY);
                     }
+
+                    if (pContractNum != null && !pContractNum.isBlank()) {
+                        ps.setString(6, pContractNum);
+                    } else {
+                        ps.setNull(6, Types.VARCHAR);
+                    }
+
+                    if (pContractDate != null) {
+                        ps.setObject(7, pContractDate);
+                    } else {
+                        ps.setNull(7, Types.DATE);
+                    }
+
+                    if (pContractorId != null) ps.setLong(8, pContractorId); else ps.setNull(8, Types.BIGINT);
+
+                    if (pCreateDttm != null) {
+                        ps.setTimestamp(9, Timestamp.valueOf(pCreateDttm));
+                    } else {
+                        ps.setNull(9, Types.TIMESTAMP);
+                    }
+
+                    if (pUpdateDttm != null) {
+                        ps.setTimestamp(10, Timestamp.valueOf(pUpdateDttm));
+                    } else {
+                        ps.setNull(10, Types.TIMESTAMP);
+                    }
+
+                    if (pCreateUserId != null) ps.setLong(11, pCreateUserId); else ps.setNull(11, Types.BIGINT);
+                    if (pUpdateUserId != null) ps.setLong(12, pUpdateUserId); else ps.setNull(12, Types.BIGINT);
                 },
                 (rs, rowNum) -> new ContractDTO(
                         rs.getObject("id", Long.class),

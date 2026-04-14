@@ -423,12 +423,21 @@ INSERT INTO crm."user"(
     user_name, user_login, user_password)
 VALUES ('test','test','test');
 
+
+
 create or replace function crm.fn_select_contract(
-    p_id         bigint default null,
-    p_lmt        integer default null,
-    p_fst        integer default null,
-    p_order_cols text[] default null,
-    p_order_dirs text[] default null
+    p_id             bigint default null,
+    p_lmt            integer default null,
+    p_fst            integer default null,
+    p_order_cols     text[] default null,
+    p_order_dirs     text[] default null,
+    p_contract_num   varchar default null,
+    p_contract_date  date default null,
+    p_contractor_id  bigint default null,
+    p_create_dttm    timestamp default null,
+    p_update_dttm    timestamp default null,
+    p_create_user_id bigint default null,
+    p_update_user_id bigint default null
 )
     returns table (
                       id             bigint,
@@ -454,12 +463,19 @@ declare
     v_i           integer;
 begin
     /*
-      Собираем ORDER BY из массивов:
-      p_order_cols = ['contract_num', 'contract_date']
-      p_order_dirs = ['asc', 'desc']
-
-      => ORDER BY q.contract_num asc, q.contract_date desc
+      Фиксируем номера placeholder-ов:
+      $1  = p_id
+      $2  = p_lmt
+      $3  = p_fst
+      $4  = p_contract_num
+      $5  = p_contract_date
+      $6  = p_contractor_id
+      $7  = p_create_dttm
+      $8  = p_update_dttm
+      $9  = p_create_user_id
+      $10 = p_update_user_id
     */
+
     if p_order_cols is not null and array_length(p_order_cols, 1) > 0 then
         v_order_parts := '{}';
 
@@ -471,10 +487,6 @@ begin
                     raise exception 'Некорректное направление сортировки: %', v_dir;
                 end if;
 
-                /*
-                  Белый список допустимых полей сортировки.
-                  Здесь разрешаем сортировать по alias из q.
-                */
                 if v_col not in (
                                  'id',
                                  'contract_num',
@@ -520,6 +532,34 @@ begin
         v_sql := v_sql || ' and c.id = $1';
     end if;
 
+    if p_contract_num is not null then
+        v_sql := v_sql || ' and lower(c.contract_num) like ''%''||lower($4)||''%''';
+    end if;
+
+    if p_contract_date is not null then
+        v_sql := v_sql || ' and c.contract_date = $5';
+    end if;
+
+    if p_contractor_id is not null then
+        v_sql := v_sql || ' and c.contractor_id = $6';
+    end if;
+
+    if p_create_dttm is not null then
+        v_sql := v_sql || ' and c.create_dttm = $7';
+    end if;
+
+    if p_update_dttm is not null then
+        v_sql := v_sql || ' and c.update_dttm = $8';
+    end if;
+
+    if p_create_user_id is not null then
+        v_sql := v_sql || ' and c.create_user_id = $9';
+    end if;
+
+    if p_update_user_id is not null then
+        v_sql := v_sql || ' and c.update_user_id = $10';
+    end if;
+
     v_sql := v_sql || '
         )
         select
@@ -548,7 +588,18 @@ begin
         v_sql := v_sql || ' offset $3';
     end if;
 
-    return query execute v_sql using p_id, p_lmt, p_fst;
+    return query execute v_sql
+        using
+            p_id,
+            p_lmt,
+            p_fst,
+            p_contract_num,
+            p_contract_date,
+            p_contractor_id,
+            p_create_dttm,
+            p_update_dttm,
+            p_create_user_id,
+            p_update_user_id;
 end;
 $$;
 
