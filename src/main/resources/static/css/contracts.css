@@ -1,0 +1,263 @@
+.table-box {
+    background: #fff;
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+#contractsTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    min-width: 1200px;
+}
+
+#contractsTable th,
+#contractsTable td {
+    border: 1px solid var(--line);
+    padding: 6px 8px;
+    font-size: 13px;
+    vertical-align: middle;
+    background: var(--white);
+}
+
+#contractsTable thead th {
+    background: var(--blue);
+    text-align: center;
+    font-weight: 700;
+}
+
+.contracts-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.contracts-toolbar label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.contracts-toolbar input[type="number"] {
+    min-width: 95px;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #b9c9d8;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.contracts-toolbar button {
+    padding: 9px 14px;
+    border: 1px solid #7ea8cf;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #9fc5e8 0%, #7ea8cf 100%);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.contracts-toolbar button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(126, 168, 207, 0.3);
+}
+
+.contracts-fragment input[type="number"] {
+    min-width: 90px;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #b9c9d8;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.contracts-fragment label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.sortable-col {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: 0.2s ease;
+}
+
+.sortable-col:hover {
+    filter: brightness(0.98);
+}
+
+.th-sort-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 28px;
+}
+
+.sort-indicator {
+    min-width: 14px;
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.sort-priority {
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #dcebf8;
+    color: #24415c;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+}
+
+.sort-remove-btn {
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 999px;
+    background: #d9534f;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    padding: 0;
+}
+
+.sort-remove-btn:hover {
+    filter: brightness(0.95);
+}
+
+.sortable-col.active-sort {
+    background: linear-gradient(180deg, #cfe3f7 0%, #b7d3ee 100%);
+}
+
+.sortable-col.sort-asc .sort-indicator,
+.sortable-col.sort-desc .sort-indicator {
+    opacity: 1;
+    font-weight: 700;
+}
+
+.filter-row th {
+    background: #eef5fb !important;
+    padding: 6px;
+}
+
+.filter-input {
+    width: 100%;
+    min-width: 0;
+    padding: 7px 8px;
+    font-size: 12px;
+    border: 1px solid #bfd2e6;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #7ea8cf;
+    box-shadow: 0 0 0 3px rgba(126, 168, 207, 0.18);
+}
+
+.contracts-pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #ffffff;
+    border: 1px solid #d7e3f0;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    flex-wrap: wrap;
+}
+
+.contracts-pages {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.page-btn,
+.page-nav-btn {
+    min-width: 38px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #c7d7e7;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f2f7fc 100%);
+    color: #24415c;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.page-btn:hover,
+.page-nav-btn:hover {
+    transform: translateY(-1px);
+    border-color: #8fb6da;
+    box-shadow: 0 4px 10px rgba(126, 168, 207, 0.25);
+}
+
+.page-btn.active {
+    background: linear-gradient(180deg, #9fc5e8 0%, #7ea8cf 100%);
+    color: #ffffff;
+    border-color: #6f9dc7;
+    box-shadow: 0 4px 12px rgba(126, 168, 207, 0.35);
+}
+
+.page-btn:disabled,
+.page-nav-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.page-dots {
+    min-width: 24px;
+    text-align: center;
+    color: #6f7f90;
+    font-weight: 700;
+}
+
+.contracts-page-info {
+    margin-left: auto;
+    font-size: 13px;
+    color: #4f6275;
+    white-space: nowrap;
+}
+
+.contracts-empty-row td {
+    text-align: center;
+    padding: 18px 12px;
+    font-size: 14px;
+    color: #5d6d7e;
+    background: #f8fbfe;
+    font-style: italic;
+}
+
+.contracts-error-row td {
+    color: #b42318;
+    background: #fff3f2;
+}
